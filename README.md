@@ -41,5 +41,6 @@ You'll need
 
 ## Todo
 
-- [ ] folder support with _"Are you sure?_; `tiny .`
+- [x] folder support: `tiny .`
+- [ ] _"Are you sure?_ for folders
 - [ ] set up github actions building shadow jar and binaries for all three platforms that I can cargo-cult later

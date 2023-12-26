@@ -1,30 +1,46 @@
 import kotlinx.coroutines.delay
-import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import okhttp3.RequestBody.Companion.asRequestBody
 import okio.buffer
 import okio.sink
 import java.io.IOException
+import java.nio.file.InvalidPathException
 import java.nio.file.Path
 import java.time.Duration
-import kotlin.io.path.extension
-import kotlin.io.path.isRegularFile
-import kotlin.io.path.nameWithoutExtension
-import kotlin.io.path.pathString
+import kotlin.io.path.*
 import kotlin.math.roundToInt
 import kotlin.random.Random
 import kotlin.random.nextLong
 
 suspend fun main(args: Array<String>) {
-    if (args.size < 1) {
-        println("Usage: tiny cat.png dog.jpg")
+    if (args.isEmpty()) {
+        println(
+            """
+            Usage: 
+              tiny cat.png dog.jpg # shrink supplied files
+              tiny . # shrink images in folder
+        """.trimIndent()
+        )
         return
     }
 
-    val imagePaths = args
-        .map(Path::of)
-        .filter(Path::isRegularFile)
-        .filter { path -> path.extension in listOf("jpg", "jpeg", "png") }
+    val firstPath = args[0].toPathOrNull()
+    if (firstPath == null) {
+        println("Invalid path: ${args[0]}")
+        return
+    }
+
+    val imagePaths: List<Path>
+    if (firstPath.isDirectory()) {
+        if (args.size > 1) {
+            println("First argument is a folder, ignoring the rest of args.")
+        }
+        imagePaths = firstPath.listDirectoryEntries().filter(Path::isImagePath)
+    } else {
+        imagePaths = args.map(Path::of).filter(Path::isImagePath)
+    }
 
     for (path in imagePaths) {
         print("Shrinking $path... ")
@@ -48,6 +64,15 @@ suspend fun main(args: Array<String>) {
         println("OK! Saved $saved%")
     }
 }
+
+fun Path.isImagePath() = isRegularFile() && extension in listOf("jpg", "jpeg", "png")
+
+fun String.toPathOrNull() =
+    try {
+        Path.of(this)
+    } catch (_: InvalidPathException) {
+        null
+    }
 
 private val client = OkHttpClient.Builder()
     .callTimeout(Duration.ofSeconds(10))
