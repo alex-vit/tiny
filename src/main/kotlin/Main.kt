@@ -32,14 +32,13 @@ suspend fun main(args: Array<String>) {
         return
     }
 
-    val imagePaths: List<Path>
-    if (firstPath.isDirectory()) {
+    val imagePaths: List<Path> = if (firstPath.isDirectory()) {
         if (args.size > 1) {
             println("First argument is a folder, ignoring the rest of args.")
         }
-        imagePaths = firstPath.listDirectoryEntries().filter(Path::isImagePath)
+        firstPath.listDirectoryEntries().filter(Path::isImagePath)
     } else {
-        imagePaths = args.map(Path::of).filter(Path::isImagePath)
+        args.map(Path::of).filter(Path::isImagePath)
     }
 
     for (path in imagePaths) {
@@ -65,8 +64,6 @@ suspend fun main(args: Array<String>) {
     }
 }
 
-fun Path.isImagePath() = isRegularFile() && extension in listOf("jpg", "jpeg", "png")
-
 fun String.toPathOrNull() =
     try {
         Path.of(this)
@@ -74,14 +71,15 @@ fun String.toPathOrNull() =
         null
     }
 
+fun Path.isImagePath() = isRegularFile() && extension in listOf("jpg", "jpeg", "png")
+
 private val client = OkHttpClient.Builder()
     .callTimeout(Duration.ofSeconds(10))
     .build()
-private val postReqBuilder = Request.Builder()
-    .url("https://tinyjpg.com/backend/opt/shrink")
 
 private fun postShrink(path: Path): ShrinkResp? {
-    val req = postReqBuilder
+    val req = Request.Builder()
+        .url("https://tinyjpg.com/backend/opt/shrink")
         .post(path.toFile().asRequestBody(mediaType(path)))
         .build()
     try {
