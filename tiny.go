@@ -15,6 +15,8 @@ import (
 	"time"
 )
 
+const preserveOriginals = false
+
 func main() {
 	if len(os.Args) < 2 ||
 		len(os.Args) > 2 && os.Args[1] == "." {
@@ -43,10 +45,11 @@ func main() {
 	for _, path := range paths {
 		fmt.Printf(`Shrinking "%s"... `, path)
 
-		err = makeBackup(path)
-		if err != nil {
-			fmt.Printf("Failed to back up: %s\n", err)
-			continue
+		if preserveOriginals {
+			if err = makeBackup(path); err != nil {
+				fmt.Printf("Failed to back up: %s. Skipping.\n", err)
+				continue
+			}
 		}
 
 		delayMs := 501 + rand.Intn(500)
@@ -58,8 +61,7 @@ func main() {
 			continue
 		}
 
-		err = download(shrinkResp.Output.Url, path)
-		if err != nil {
+		if err = download(shrinkResp.Output.Url, path); err != nil {
 			fmt.Printf("Failed to download %s: %s\n", shrinkResp.Output.Url, err)
 			continue
 		}
@@ -70,9 +72,7 @@ func main() {
 }
 
 func exitUsage() {
-	fmt.Print(`Shrinks images, preserving the originals in [NAME]_original.ext.
-
-Usages:
+	fmt.Print(`Usages:
 tiny cat.jpg dog.png
 tiny .
 `)
