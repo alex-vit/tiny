@@ -131,7 +131,7 @@ type shrinkResp struct {
 	} `json:"output"`
 }
 
-func postShrink(path string) (resp *shrinkResp, err error) {
+func postShrink(path string) (resp shrinkResp, err error) {
 	// "curl",
 	// "https://tinyjpg.com/backend/opt/shrink",
 	// "-X", "'POST'",
@@ -157,15 +157,13 @@ func postShrink(path string) (resp *shrinkResp, err error) {
 	// {"input":{"size":30761,"type":"image/jpeg"},"output":{"size":25691,"type":"image/jpeg","width":400,"height":400,"ratio":0.8352,"url":"https://tinyjpg.com/backend/opt/output/5efap4fwyn0kzrjqzjs4z09tm4khcnwp"}}
 	// we want to then download the $.output.url
 
-	resp = &shrinkResp{}
-
 	file, err := os.Open(path)
 	if err != nil {
-		return nil, err
+		return resp, err
 	}
 	req, err := http.NewRequest("POST", "https://tinyjpg.com/backend/opt/shrink", file)
 	if err != nil {
-		return nil, err
+		return resp, err
 	}
 	req.Header.Set("authority", "tinyjpg.com")
 	req.Header.Set("accept", "*/*")
@@ -185,18 +183,13 @@ func postShrink(path string) (resp *shrinkResp, err error) {
 
 	httpResp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return nil, err
+		return resp, err
 	}
 	defer httpResp.Body.Close()
 
-	respBytes, err := io.ReadAll(httpResp.Body)
+	err = json.NewDecoder(httpResp.Body).Decode(&resp)
 	if err != nil {
-		return nil, err
-	}
-
-	err = json.Unmarshal(respBytes, resp)
-	if err != nil {
-		return nil, err
+		return resp, err
 	}
 
 	return resp, nil
