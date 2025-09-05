@@ -16,6 +16,11 @@ import (
 )
 
 const preserveOriginals = false
+const usage = `
+USAGE
+	tiny cat.jpg dog.png
+	tiny .
+`
 
 func main() {
 	if len(os.Args) < 2 ||
@@ -72,10 +77,7 @@ func main() {
 }
 
 func exitUsage() {
-	fmt.Print(`Usages:
-tiny cat.jpg dog.png
-tiny .
-`)
+	fmt.Println(strings.TrimSpace(usage))
 	os.Exit(0)
 }
 

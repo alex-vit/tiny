@@ -20,3 +20,7 @@ go install github.com/alex-vit/tiny@latest
 
 > [!WARNING]
 > tiny replaces the image with the compressed one. If you'd like tiny to preserve the original, flip the `preserveOriginals` constant and recompile.
+
+## To do 
+
+[ ] add PDF support? [iLoveAPI](https://www.iloveapi.com/docs/api-reference) looks great.
